@@ -1,42 +1,100 @@
-import React from "react";
-import { Link } from "react-router-dom";
+import React, { useState } from "react";
+import axios from "../api/axios";
+import { useNavigate } from "react-router-dom";
 
-export default function Signup() {
+const SignUp: React.FC = () => {
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [message, setMessage] = useState(""); // Success or error message
+  const navigate = useNavigate();
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage(""); // Clear previous messages
+
+    try {
+      const response = await axios.post("/register", {
+        username,
+        email,
+        password,
+      });
+
+      if (response.status === 200) {
+        setMessage("Account created successfully! Redirecting to login...");
+        setTimeout(() => navigate("/login"), 2000);
+      }
+    } catch (error: any) {
+      if (error.response) {
+        if (error.response.status === 409) {
+          const serverMessage = error.response.data;
+          if (serverMessage.includes("Username")) {
+            setMessage("Username already exists.");
+          } else if (serverMessage.includes("Email")) {
+            setMessage("Email already exists.");
+          } else {
+            setMessage("Conflict: " + serverMessage);
+          }
+        } else {
+          setMessage("Registration failed: " + error.response.data);
+        }
+      } else {
+        setMessage("Unable to connect to server. Is it running?");
+      }
+    }
+  };
+
   return (
-    <div className="flex flex-col items-center justify-center w-full max-w-sm p-6 bg-white rounded-lg shadow-lg">
-      <h1 className="text-2xl font-bold text-gray-800 mb-4">Sign Up</h1>
-      <form className="flex flex-col w-full space-y-4">
-        <input
-          type="text"
-          placeholder="Username"
-          className="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <input
-          type="email"
-          placeholder="Email"
-          className="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          className="px-4 py-2 border rounded focus:outline-none focus:ring-2 focus:ring-indigo-500"
-        />
-        <button
-          type="submit"
-          className="w-full px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-        >
-          Create Account
-        </button>
-      </form>
-      <p className="mt-4 text-gray-600">
-        Already have an account?{" "}
-        <Link
-          to="/"
-          className="text-indigo-600 hover:underline"
-        >
-          Login
-        </Link>
-      </p>
+    <div className="flex justify-center items-center h-screen bg-gradient-to-r from-purple-500 to-pink-500">
+      <div className="bg-white p-8 rounded shadow-md w-96">
+        <h1 className="text-2xl font-bold mb-4 text-center text-gray-800">Sign Up</h1>
+        {message && (
+          <p className="mb-4 text-center text-red-600 font-medium">{message}</p>
+        )}
+        <form onSubmit={handleSubmit} className="space-y-4">
+          <input
+            type="text"
+            placeholder="Username"
+            className="w-full p-2 border border-gray-300 rounded text-black"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+          <input
+            type="email"
+            placeholder="Email"
+            className="w-full p-2 border border-gray-300 rounded text-black"
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            required
+          />
+          <input
+            type="password"
+            placeholder="Password"
+            className="w-full p-2 border border-gray-300 rounded text-black"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+          <button
+            type="submit"
+            className="w-full bg-purple-600 text-white p-2 rounded hover:bg-purple-700"
+          >
+            Create Account
+          </button>
+        </form>
+        <p className="mt-4 text-center">
+          Already have an account?{" "}
+          <span
+            className="text-blue-600 cursor-pointer hover:underline"
+            onClick={() => navigate("/login")}
+          >
+            Login
+          </span>
+        </p>
+      </div>
     </div>
   );
-}
+};
+
+export default SignUp;
