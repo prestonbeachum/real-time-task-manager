@@ -1,14 +1,15 @@
 package com.taskmanager.server.model;
 
 import jakarta.persistence.*;
-import java.time.LocalDateTime;
-import com.fasterxml.jackson.annotation.JsonManagedReference;
 import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import java.time.LocalDateTime;
 import java.util.List;
 
-
-
 @Entity
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class Task {
 
     @Id
@@ -16,47 +17,34 @@ public class Task {
     private Long id;
 
     private String title;
-
     private String description;
 
-    private boolean completed;
+    private boolean completed = false;
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime createdAt = LocalDateTime.now();
 
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
     private LocalDateTime dueDate;
+
+    private String label;
+    private String priority;
+
+    private boolean reminderSent = false;
+
+    @JsonFormat(pattern = "yyyy-MM-dd'T'HH:mm:ss")
+    private LocalDateTime reminderTime;
+
+    @OneToMany(cascade = CascadeType.ALL)
+    @JoinColumn(name = "parent_task_id")
+    private List<Task> subtasks;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     @JsonBackReference
     private User user;
 
-    @Column
-    private String label;
-
-    @Column
-    private String priority;
-
-    @OneToMany(cascade = CascadeType.ALL)
-    @JoinColumn(name = "parent_task_id")  // Self-referencing FK
-    private List<Task> subtasks;
-
-
-    @Column
-    private LocalDateTime reminderTime;
-
-    @Lob
-    @Column(name = "attachment_data")
-    private byte[] attachmentData;
-
-    @Column(name = "attachment_name")
-    private String attachmentName;
-
-
-
-    // Getters and Setters
-
-
-
+    // Getters and setters
 
     public Long getId() {
         return id;
@@ -106,14 +94,6 @@ public class Task {
         this.dueDate = dueDate;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
-
     public String getLabel() {
         return label;
     }
@@ -130,12 +110,12 @@ public class Task {
         this.priority = priority;
     }
 
-    public List<Task> getSubtasks() {
-        return subtasks;
+    public boolean isReminderSent() {
+        return reminderSent;
     }
 
-    public void setSubtasks(List<Task> subtasks) {
-        this.subtasks = subtasks;
+    public void setReminderSent(boolean reminderSent) {
+        this.reminderSent = reminderSent;
     }
 
     public LocalDateTime getReminderTime() {
@@ -146,32 +126,23 @@ public class Task {
         this.reminderTime = reminderTime;
     }
 
-    public byte[] getAttachmentData() {
-        return attachmentData;
+    public List<Task> getSubtasks() {
+        return subtasks;
     }
 
-    public void setAttachmentData(byte[] attachmentData) {
-        this.attachmentData = attachmentData;
+    public void setSubtasks(List<Task> subtasks) {
+        this.subtasks = subtasks;
     }
 
-    public String getAttachmentName() {
-        return attachmentName;
+    public User getUser() {
+        return user;
     }
 
-    public void setAttachmentName(String attachmentName) {
-        this.attachmentName = attachmentName;
+    public void setUser(User user) {
+        this.user = user;
     }
 
-    @Column
-    private boolean reminderSent = false;
-
-    public boolean isReminderSent() {
-        return reminderSent;
+    public String getUsername() {
+        return user != null ? user.getUsername() : null;
     }
-
-    public void setReminderSent(boolean reminderSent) {
-        this.reminderSent = reminderSent;
-    }
-
-
 }

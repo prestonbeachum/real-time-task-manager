@@ -1,20 +1,18 @@
-import axios from "axios";
-
-const API_URL = "http://localhost:8080";
+import api from "./axios";
 
 export const register = async (username: string, email: string, password: string) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, {
+    const response = await api.post("/register", {
       username,
       email,
       password,
     });
     return response.data;
   } catch (error: any) {
-    if (error.response && error.response.data) {
-      throw new Error(error.response.data); // Show backend error message
+    if (error.response?.data) {
+      throw new Error(typeof error.response.data === "string" ? error.response.data : "Registration failed.");
+    } else {
+      throw new Error("Unable to connect to server.");
     }
-    console.error(error); // For debugging
-    throw new Error("Unable to connect to server. Is the backend running?");
   }
 };

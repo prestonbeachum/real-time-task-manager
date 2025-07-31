@@ -2,13 +2,8 @@ import api from "./axios";
 
 export const login = async (username: string, password: string) => {
   try {
-    const response = await api.get("/tasks", {
-      auth: {
-        username,
-        password,
-      },
-    });
-    return response.data; // Return user tasks or success indicator
+    const response = await api.post("/login", { username, password });
+    return response.data;
   } catch (error: any) {
     console.error("Login failed:", error.response?.data || error.message);
     throw new Error(

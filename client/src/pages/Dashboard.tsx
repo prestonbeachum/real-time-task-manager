@@ -1,76 +1,237 @@
 import React, { useEffect, useState } from "react";
-import axios from "../api/axios";
 import { useNavigate } from "react-router-dom";
+import axios from "../api/axios";
 
 interface Task {
   id: number;
   title: string;
-  description: string;
   dueDate: string;
   completed: boolean;
 }
 
-export default function Dashboard() {
+const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [newTaskTitle, setNewTaskTitle] = useState("");
+  const [newTaskDueDate, setNewTaskDueDate] = useState("");
+  const [newTaskDescription, setNewTaskDescription] = useState("");
+  const [newTaskLabel, setNewTaskLabel] = useState("");
+  const [newTaskPriority, setNewTaskPriority] = useState("Low");
+  const [newTaskReminder, setNewTaskReminder] = useState("");
+
   const navigate = useNavigate();
 
   const fetchTasks = async () => {
     try {
       const response = await axios.get("/tasks");
-      setTasks(response.data);
-    } catch (err) {
-      console.error("Failed to fetch tasks", err);
-      alert("Unable to load tasks. Are you logged in?");
-      navigate("/login");
+      if (Array.isArray(response.data)) {
+        setTasks(response.data);
+      } else {
+        setTasks([]);
+        console.error("Unexpected response:", response.data);
+      }
+    } catch (error) {
+      setTasks([]);
+      console.error("Error fetching tasks:", error);
+      alert("Failed to load tasks. Are you logged in?");
+    } finally {
+      setLoading(false);
     }
-  };
-
-  const handleLogout = () => {
-    // Clear session data if needed
-    navigate("/login");
   };
 
   useEffect(() => {
     fetchTasks();
   }, []);
 
-  return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-800 to-indigo-600 text-white p-8">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-3xl font-bold">Dashboard</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 hover:bg-red-600 px-4 py-2 rounded"
-        >
-          Logout
-        </button>
-      </div>
+  const handleLogout = () => {
+    localStorage.removeItem("username");
+    localStorage.removeItem("password");
+    navigate("/login");
+  };
 
-      {tasks.length === 0 ? (
-        <p className="text-lg">No tasks found. Start by creating one!</p>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-          {tasks.map((task) => (
-            <div
-              key={task.id}
-              className="bg-white text-black p-4 rounded shadow hover:shadow-lg"
+const handleAddTask = async () => {
+  try {
+    const dueDateTime = newTaskDueDate
+      ? new Date(newTaskDueDate).toISOString()
+      : null;
+    const reminderDateTime = newTaskReminder
+      ? new Date(newTaskReminder).toISOString()
+      : null;
+
+const pad = (n: number) => (n < 10 ? "0" + n : n);
+
+const formatDateTime = (d: Date) => {
+  return (
+    d.getFullYear() +
+    "-" +
+    pad(d.getMonth() + 1) +
+    "-" +
+    pad(d.getDate()) +
+    "T" +
+    pad(d.getHours()) +
+    ":" +
+    pad(d.getMinutes()) +
+    ":" +
+    pad(d.getSeconds())
+  );
+};
+
+const payload = {
+  title: newTaskTitle,
+  description: newTaskDescription,
+  label: newTaskLabel,
+  priority: newTaskPriority,
+  dueDate: formatDateTime(new Date(newTaskDueDate)),
+  reminderTime: formatDateTime(new Date(newTaskReminder)),
+  completed: false,
+};
+
+
+
+    // 👉 This is Step 1 — log the payload to debug what you're sending
+    console.log("Sending payload:", JSON.stringify(payload, null, 2));
+
+    const response = await axios.post("/tasks", payload, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("Task added:", response.data);
+    setNewTaskTitle("");
+    setNewTaskDescription("");
+    setNewTaskLabel("");
+    setNewTaskPriority("Low");
+    setNewTaskDueDate("");
+    setNewTaskReminder("");
+    fetchTasks();
+  } catch (error: any) {
+    console.error("Error adding task:", error);
+    console.error("Error details:", error?.response?.data || error.message);
+    alert("Failed to add task.");
+  }
+};
+
+
+
+  const handleEditTask = async (id: number, newTitle: string) => {
+    try {
+      await axios.put(`/tasks/${id}`, { title: newTitle });
+      fetchTasks();
+    } catch (error) {
+      console.error("Error editing task:", error);
+      alert("Failed to edit task.");
+    }
+  };
+
+  const handleDeleteTask = async (id: number) => {
+    if (!confirm("Delete this task?")) return;
+
+    try {
+      await axios.delete(`/tasks/${id}`);
+      fetchTasks();
+    } catch (error) {
+      console.error("Error deleting task:", error);
+      alert("Failed to delete task.");
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex flex-col items-center justify-center p-6">
+      <h1 className="text-4xl font-bold text-white mb-6">Dashboard</h1>
+
+      <div className="w-full max-w-2xl bg-white rounded-lg shadow-md p-6 text-black">
+        <div className="flex justify-between mb-4">
+          <div className="flex flex-col gap-2 w-full">
+            <input
+              type="text"
+              placeholder="Task Title"
+              value={newTaskTitle}
+              onChange={(e) => setNewTaskTitle(e.target.value)}
+              className="border rounded px-2 py-1 text-black"
+            />
+            <input
+              type="text"
+              placeholder="Description"
+              value={newTaskDescription}
+              onChange={(e) => setNewTaskDescription(e.target.value)}
+              className="border rounded px-2 py-1 text-black"
+            />
+            <input
+              type="text"
+              placeholder="Label"
+              value={newTaskLabel}
+              onChange={(e) => setNewTaskLabel(e.target.value)}
+              className="border rounded px-2 py-1 text-black"
+            />
+            <select
+              value={newTaskPriority}
+              onChange={(e) => setNewTaskPriority(e.target.value)}
+              className="border rounded px-2 py-1 text-black"
             >
-              <h2 className="text-xl font-semibold">{task.title}</h2>
-              <p className="text-sm">{task.description}</p>
-              <p className="text-sm">
-                Due: {new Date(task.dueDate).toLocaleDateString()}
-              </p>
-              <p
-                className={`mt-2 font-medium ${
-                  task.completed ? "text-green-600" : "text-red-600"
-                }`}
-              >
-                {task.completed ? "Completed" : "Incomplete"}
-              </p>
-            </div>
-          ))}
+              <option value="Low">Low</option>
+              <option value="Medium">Medium</option>
+              <option value="High">High</option>
+            </select>
+            <input
+              type="date"
+              value={newTaskDueDate}
+              onChange={(e) => setNewTaskDueDate(e.target.value)}
+              className="border rounded px-2 py-1 text-black"
+            />
+            <input
+              type="datetime-local"
+              value={newTaskReminder}
+              onChange={(e) => setNewTaskReminder(e.target.value)}
+              className="border rounded px-2 py-1 text-black"
+            />
+            <button
+              onClick={handleAddTask}
+              className="bg-green-500 hover:bg-green-600 text-white px-4 py-2 rounded"
+            >
+              Add Task
+            </button>
+          </div>
+          <button
+            onClick={handleLogout}
+            className="bg-red-500 hover:bg-red-600 text-white px-4 py-2 rounded ml-4"
+          >
+            Logout
+          </button>
         </div>
-      )}
+
+        {loading ? (
+          <p className="text-center">Loading tasks...</p>
+        ) : tasks.length === 0 ? (
+          <p className="text-center text-gray-500">No tasks found.</p>
+        ) : (
+          <ul>
+            {tasks.map((task) => (
+              <li
+                key={task.id}
+                className="flex justify-between items-center bg-gray-100 p-3 rounded mb-2"
+              >
+                <input
+                  type="text"
+                  defaultValue={task.title}
+                  onBlur={(e) => handleEditTask(task.id, e.target.value.trim())}
+                  className="border rounded px-2 py-1 w-2/3 text-black"
+                />
+                <div className="space-x-2">
+                  <button
+                    onClick={() => handleDeleteTask(task.id)}
+                    className="bg-red-400 hover:bg-red-500 text-white px-3 py-1 rounded"
+                  >
+                    Delete
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
     </div>
   );
-}
+};
+
+export default Dashboard;
