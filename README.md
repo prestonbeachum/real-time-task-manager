@@ -62,13 +62,6 @@ Edit
 
 ---
 
-### Frontend
-
-```bash
-cd client
-npm install
-npm run dev
-
 ### Backend
 
 ```bash
