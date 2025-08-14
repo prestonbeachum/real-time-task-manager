@@ -36,22 +36,6 @@ A full-stack, real-time task management app designed for productivity, clean arc
 
 ---
 
-## Project Structure
-
-collab-task-manager/
-├── client/ # React frontend
-│ ├── src/
-│ └── public/
-├── server/ # Spring Boot backend
-│ ├── src/
-│ └── pom.xml
-
-yaml
-Copy
-Edit
-
----
-
 ## Local Setup
 
 ### Prerequisites
