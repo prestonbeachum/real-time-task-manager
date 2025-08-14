@@ -1,51 +1,53 @@
-# Real-Time Collaborative Task Management System
+# Collaborative Task Management System
 
-This is a full-stack, real-time task management application built with Spring Boot (Java) on the backend and React (TypeScript) on the frontend. The app allows users to create, update, and track tasks collaboratively in real time. The backend is fully integrated with a PostgreSQL database and is containerized with Docker for portability and deployment.
+A full-stack real-time task management application with user authentication, reminders, and live updates. Built with **Spring Boot** on the backend and **React + TypeScript** on the frontend.
 
-## Project Overview
+---
 
-This project is designed to demonstrate real-world, production-grade development skills across the stack. It includes database integration, API design, secure user authentication (planned), real-time updates, and frontend integration.
+## Tech Stack
 
-Unlike basic CRUD tutorials, this system is modular, persistent, and built for actual use, not just demonstration.
-
-## Core Features
-
-### Backend (Spring Boot)
-- RESTful API with clean separation of concerns
-- Task CRUD operations (`/tasks`)
-- PostgreSQL integration with JPA/Hibernate
-- Tested via Postman and curl
-- Dockerized for local development and deployment
-
-### Planned Features
-- JWT or OAuth2 authentication
-- WebSocket-based real-time task updates
-- File upload support for task attachments
-- Role-based access control (admin, collaborator, read-only)
-- CI/CD pipeline via GitHub Actions and Render deployment
+### Backend (Java Spring Boot)
+- Spring Boot 3
+- Spring Security (JWT-based Auth)
+- PostgreSQL
+- Hibernate / JPA
+- WebSockets
+- Maven
 
 ### Frontend (React + TypeScript)
-- In progress: React UI built with reusable components and hooks
-- Task board, forms, and real-time feedback
-- State management using Context API or Redux (TBD)
+- React 18
+- Vite
+- Axios
+- React Router
+- Context API for auth state
+- TailwindCSS (if used)
 
-## Technologies Used
+---
 
-- **Java 21**, **Spring Boot 3**
-- **PostgreSQL**, **JPA**, **Hibernate**
-- **Docker**, **Docker Compose**
-- **React**, **TypeScript**
-- **WebSockets** (planned)
-- **Render / Railway** for deployment
+## Features
+
+- **Secure Login/Register** with JWT
+- **Create, Edit, Delete Tasks**
+- **Real-Time WebSocket Sync**
+- **Reminders** with due date & time
+- **Priority & Labels** for task organization
+- **Modular and Scalable Architecture**
+- **Axios Hook Integration** for clean API calls
+
+---
 
 ## Local Development
 
 ### Prerequisites
 - Java 21+
-- Docker & Docker Compose
 - Node.js 18+
+- PostgreSQL running locally
+- Docker (optional for PostgreSQL)
 
-### Running the Backend
+---
+
+### 🔙 Backend
+
 ```bash
 cd server
-./mvnw clean spring-boot:run
+./mvnw spring-boot:run
