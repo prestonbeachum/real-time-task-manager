@@ -1,51 +1,54 @@
-# Real-Time Collaborative Task Management System
+# Collaborative Task Management System
 
-This is a full-stack, real-time task management application built with Spring Boot (Java) on the backend and React (TypeScript) on the frontend. The app allows users to create, update, and track tasks collaboratively in real time. The backend is fully integrated with a PostgreSQL database and is containerized with Docker for portability and deployment.
+A full-stack, real-time task management app designed for productivity, clean architecture, and team collaboration. Built with Spring Boot and React (TypeScript), it supports authentication, WebSocket updates, reminders, and modular expansion.
 
-## Project Overview
+---
 
-This project is designed to demonstrate real-world, production-grade development skills across the stack. It includes database integration, API design, secure user authentication (planned), real-time updates, and frontend integration.
+## Tech Stack
 
-Unlike basic CRUD tutorials, this system is modular, persistent, and built for actual use, not just demonstration.
+**Backend (Spring Boot 3 + Java):**
+- Spring Boot
+- Spring Security (JWT Auth)
+- PostgreSQL
+- WebSockets
+- JPA / Hibernate
+- Maven
 
-## Core Features
+**Frontend (React + TypeScript):**
+- React 18 (w/ Vite)
+- React Router
+- Axios (custom hook)
+- Context API (for auth state)
+- TailwindCSS (optional)
 
-### Backend (Spring Boot)
-- RESTful API with clean separation of concerns
-- Task CRUD operations (`/tasks`)
-- PostgreSQL integration with JPA/Hibernate
-- Tested via Postman and curl
-- Dockerized for local development and deployment
+---
 
-### Planned Features
-- JWT or OAuth2 authentication
-- WebSocket-based real-time task updates
-- File upload support for task attachments
-- Role-based access control (admin, collaborator, read-only)
-- CI/CD pipeline via GitHub Actions and Render deployment
+## Features
 
-### Frontend (React + TypeScript)
-- In progress: React UI built with reusable components and hooks
-- Task board, forms, and real-time feedback
-- State management using Context API or Redux (TBD)
+- JWT-based authentication (Login/Register)
+- Create, update, delete tasks
+- User-based task visibility
+- Real-time WebSocket updates
+- Due dates & reminders
+- Labels, priority levels, filtering
+- Centralized error logging
+- Modular and scalable project structure
 
-## Technologies Used
+---
 
-- **Java 21**, **Spring Boot 3**
-- **PostgreSQL**, **JPA**, **Hibernate**
-- **Docker**, **Docker Compose**
-- **React**, **TypeScript**
-- **WebSockets** (planned)
-- **Render / Railway** for deployment
-
-## Local Development
+## Local Setup
 
 ### Prerequisites
-- Java 21+
-- Docker & Docker Compose
-- Node.js 18+
 
-### Running the Backend
+- Java 21+
+- Node.js 18+
+- PostgreSQL installed & running locally
+
+---
+
+### Backend
+
 ```bash
 cd server
-./mvnw clean spring-boot:run
+./mvnw spring-boot:run
+Update your application.properties as needed:
