@@ -1,48 +1,64 @@
 # Collaborative Task Management System
 
-A full-stack real-time task management application with user authentication, reminders, and live updates. Built with **Spring Boot** on the backend and **React + TypeScript** on the frontend.
+A full-stack, real-time task management app designed for productivity, clean architecture, and team collaboration. Built with Spring Boot and React (TypeScript), it supports authentication, WebSocket updates, reminders, and modular expansion.
 
 ---
 
 ## Tech Stack
 
-### Backend (Java Spring Boot)
-- Spring Boot 3
-- Spring Security (JWT-based Auth)
+**Backend (Spring Boot 3 + Java):**
+- Spring Boot
+- Spring Security (JWT Auth)
 - PostgreSQL
-- Hibernate / JPA
 - WebSockets
+- JPA / Hibernate
 - Maven
 
-### Frontend (React + TypeScript)
-- React 18
-- Vite
-- Axios
+**Frontend (React + TypeScript):**
+- React 18 (w/ Vite)
 - React Router
-- Context API for auth state
-- TailwindCSS (if used)
+- Axios (custom hook)
+- Context API (for auth state)
+- TailwindCSS (optional)
 
 ---
 
 ## Features
 
-- **Secure Login/Register** with JWT
-- **Create, Edit, Delete Tasks**
-- **Real-Time WebSocket Sync**
-- **Reminders** with due date & time
-- **Priority & Labels** for task organization
-- **Modular and Scalable Architecture**
-- **Axios Hook Integration** for clean API calls
+- JWT-based authentication (Login/Register)
+- Create, update, delete tasks
+- User-based task visibility
+- Real-time WebSocket updates
+- Due dates & reminders
+- Labels, priority levels, filtering
+- Centralized error logging
+- Modular and scalable project structure
 
 ---
 
-## Local Development
+## Project Structure
+
+collab-task-manager/
+├── client/ # React frontend
+│ ├── src/
+│ └── public/
+├── server/ # Spring Boot backend
+│ ├── src/
+│ └── pom.xml
+
+yaml
+Copy
+Edit
+
+---
+
+## Local Setup
 
 ### Prerequisites
+
 - Java 21+
 - Node.js 18+
-- PostgreSQL running locally
-- Docker (optional for PostgreSQL)
+- PostgreSQL installed & running locally
 
 ---
 
@@ -51,3 +67,9 @@ A full-stack real-time task management application with user authentication, rem
 ```bash
 cd server
 ./mvnw spring-boot:run
+Update your application.properties as needed:
+
+```bash
+cd client
+npm install
+npm run dev
