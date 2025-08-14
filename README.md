@@ -62,14 +62,16 @@ Edit
 
 ---
 
-### 🔙 Backend
-
-```bash
-cd server
-./mvnw spring-boot:run
-Update your application.properties as needed:
+### Frontend
 
 ```bash
 cd client
 npm install
 npm run dev
+
+### Backend
+
+```bash
+cd server
+./mvnw spring-boot:run
+Update your application.properties as needed:
