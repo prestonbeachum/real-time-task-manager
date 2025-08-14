@@ -21,23 +21,37 @@ const Dashboard = () => {
 
   const navigate = useNavigate();
 
-  const fetchTasks = async () => {
-    try {
-      const response = await axios.get("/tasks");
-      if (Array.isArray(response.data)) {
-        setTasks(response.data);
-      } else {
+    const fetchTasks = async () => {
+      try {
+        const username = localStorage.getItem("username");
+        const password = localStorage.getItem("password");
+
+        if (!username || !password) {
+          throw new Error("Not logged in.");
+        }
+
+        const response = await axios.get("/tasks", {
+          auth: {
+            username,
+            password,
+          },
+        });
+
+        if (Array.isArray(response.data)) {
+          setTasks(response.data);
+        } else {
+          setTasks([]);
+          console.error("Unexpected response:", response.data);
+        }
+      } catch (error) {
         setTasks([]);
-        console.error("Unexpected response:", response.data);
+        console.error("Error fetching tasks:", error);
+        alert("Failed to load tasks. Are you logged in?");
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      setTasks([]);
-      console.error("Error fetching tasks:", error);
-      alert("Failed to load tasks. Are you logged in?");
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+
 
   useEffect(() => {
     fetchTasks();
@@ -51,49 +65,51 @@ const Dashboard = () => {
 
 const handleAddTask = async () => {
   try {
-    const dueDateTime = newTaskDueDate
-      ? new Date(newTaskDueDate).toISOString()
-      : null;
-    const reminderDateTime = newTaskReminder
-      ? new Date(newTaskReminder).toISOString()
-      : null;
+    const username = localStorage.getItem("username");
+    const password = localStorage.getItem("password");
 
-const pad = (n: number) => (n < 10 ? "0" + n : n);
+    if (!username || !password) {
+      alert("You must be logged in to add tasks.");
+      navigate("/login");
+      return;
+    }
 
-const formatDateTime = (d: Date) => {
-  return (
-    d.getFullYear() +
-    "-" +
-    pad(d.getMonth() + 1) +
-    "-" +
-    pad(d.getDate()) +
-    "T" +
-    pad(d.getHours()) +
-    ":" +
-    pad(d.getMinutes()) +
-    ":" +
-    pad(d.getSeconds())
-  );
-};
+    const formatDateTime = (d: Date) => {
+      const pad = (n: number) => (n < 10 ? "0" + n : n);
+      return (
+        d.getFullYear() +
+        "-" +
+        pad(d.getMonth() + 1) +
+        "-" +
+        pad(d.getDate()) +
+        "T" +
+        pad(d.getHours()) +
+        ":" +
+        pad(d.getMinutes()) +
+        ":" +
+        pad(d.getSeconds())
+      );
+    };
 
-const payload = {
-  title: newTaskTitle,
-  description: newTaskDescription,
-  label: newTaskLabel,
-  priority: newTaskPriority,
-  dueDate: formatDateTime(new Date(newTaskDueDate)),
-  reminderTime: formatDateTime(new Date(newTaskReminder)),
-  completed: false,
-};
+    const payload = {
+      title: newTaskTitle,
+      description: newTaskDescription,
+      label: newTaskLabel,
+      priority: newTaskPriority,
+      dueDate: formatDateTime(new Date(newTaskDueDate)),
+      reminderTime: formatDateTime(new Date(newTaskReminder)),
+      completed: false,
+    };
 
-
-
-    // 👉 This is Step 1 — log the payload to debug what you're sending
     console.log("Sending payload:", JSON.stringify(payload, null, 2));
 
     const response = await axios.post("/tasks", payload, {
       headers: {
         "Content-Type": "application/json",
+      },
+      auth: {
+        username,
+        password,
       },
     });
 
@@ -124,17 +140,33 @@ const payload = {
     }
   };
 
-  const handleDeleteTask = async (id: number) => {
-    if (!confirm("Delete this task?")) return;
+const handleDeleteTask = async (taskId: number) => {
+  try {
+    const username = localStorage.getItem("username");
+    const password = localStorage.getItem("password");
 
-    try {
-      await axios.delete(`/tasks/${id}`);
-      fetchTasks();
-    } catch (error) {
-      console.error("Error deleting task:", error);
-      alert("Failed to delete task.");
+    if (!username || !password) {
+      alert("You must be logged in to delete tasks.");
+      navigate("/login");
+      return;
     }
-  };
+
+    await axios.delete(`/tasks/${taskId}`, {
+      auth: {
+        username,
+        password,
+      },
+    });
+
+    console.log("Deleted task:", taskId);
+    fetchTasks(); // refresh
+  } catch (error) {
+    console.error("Error deleting task:", error);
+    alert("Failed to delete task.");
+  }
+};
+
+
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-indigo-500 to-purple-600 flex flex-col items-center justify-center p-6">

@@ -16,6 +16,7 @@ import org.springframework.web.cors.CorsConfigurationSource;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.web.filter.CorsFilter;
+import jakarta.servlet.http.HttpServletResponse;
 
 import java.util.List;
 
@@ -55,10 +56,13 @@ public class SecurityConfig {
                         .requestMatchers("/login", "/register", "/logout", "/ping").permitAll()
                         .anyRequest().authenticated()
                 )
-                .httpBasic() // <-- This line enables Basic Auth, which you're using with axios
-                .and()
+                .httpBasic(basic -> basic
+                        .authenticationEntryPoint((request, response, authException) -> {
+                            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
+                        })
+                )
                 .sessionManagement(session -> session
-                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS) // no sessions if you're using Basic Auth
+                        .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 );
 
         return http.build();

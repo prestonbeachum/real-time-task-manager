@@ -99,7 +99,9 @@ public class TaskController {
             taskService.deleteTask(id);
             return ResponseEntity.ok().build();
         } catch (Exception e) {
+            e.printStackTrace();
             return ResponseEntity.badRequest().body("Failed to delete task: " + e.getMessage());
         }
     }
+
 }
