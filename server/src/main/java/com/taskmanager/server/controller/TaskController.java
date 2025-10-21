@@ -33,6 +33,17 @@ public class TaskController {
         }
     }
 
+    @GetMapping("/user/{username}")
+    public ResponseEntity<?> getTasksByUsername(@PathVariable String username, Authentication authentication) {
+        try {
+            // Users can view other users' tasks for collaboration
+            List<Task> tasks = taskService.getTasksByUsername(username);
+            return ResponseEntity.ok(tasks);
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Failed to fetch user tasks");
+        }
+    }
+
     @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<?> createTask(
             @RequestBody Task task,

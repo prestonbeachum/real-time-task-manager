@@ -1,17 +1,23 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 
 interface Task {
   id: number;
   title: string;
+  description: string;
   dueDate: string;
   completed: boolean;
+  label: string;
+  priority: string;
+  reminderTime: string;
+  createdAt: string;
 }
 
 const Dashboard = () => {
   const [tasks, setTasks] = useState<Task[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedTaskId, setExpandedTaskId] = useState<number | null>(null);
   const [newTaskTitle, setNewTaskTitle] = useState("");
   const [newTaskDueDate, setNewTaskDueDate] = useState("");
   const [newTaskDescription, setNewTaskDescription] = useState("");
@@ -23,19 +29,14 @@ const Dashboard = () => {
 
     const fetchTasks = async () => {
       try {
-        const username = localStorage.getItem("username");
-        const password = localStorage.getItem("password");
+        const token = localStorage.getItem("token");
 
-        if (!username || !password) {
-          throw new Error("Not logged in.");
+        if (!token) {
+          navigate("/login");
+          return;
         }
 
-        const response = await axios.get("/tasks", {
-          auth: {
-            username,
-            password,
-          },
-        });
+        const response = await axios.get("/tasks");
 
         if (Array.isArray(response.data)) {
           setTasks(response.data);
@@ -46,29 +47,29 @@ const Dashboard = () => {
       } catch (error) {
         setTasks([]);
         console.error("Error fetching tasks:", error);
-        alert("Failed to load tasks. Are you logged in?");
+        alert("Failed to load tasks. Please log in again.");
+        navigate("/login");
       } finally {
         setLoading(false);
       }
     };
 
-
   useEffect(() => {
     fetchTasks();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleLogout = () => {
+    localStorage.removeItem("token");
     localStorage.removeItem("username");
-    localStorage.removeItem("password");
     navigate("/login");
   };
 
 const handleAddTask = async () => {
   try {
-    const username = localStorage.getItem("username");
-    const password = localStorage.getItem("password");
+    const token = localStorage.getItem("token");
 
-    if (!username || !password) {
+    if (!token) {
       alert("You must be logged in to add tasks.");
       navigate("/login");
       return;
@@ -107,10 +108,6 @@ const handleAddTask = async () => {
       headers: {
         "Content-Type": "application/json",
       },
-      auth: {
-        username,
-        password,
-      },
     });
 
     console.log("Task added:", response.data);
@@ -121,50 +118,35 @@ const handleAddTask = async () => {
     setNewTaskDueDate("");
     setNewTaskReminder("");
     fetchTasks();
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error adding task:", error);
-    console.error("Error details:", error?.response?.data || error.message);
+    if (error && typeof error === 'object' && 'response' in error) {
+      const axiosError = error as { response?: { data?: unknown }; message?: string };
+      console.error("Error details:", axiosError?.response?.data || axiosError.message);
+    }
     alert("Failed to add task.");
   }
 };
 
-
-
-  const handleEditTask = async (id: number, newTitle: string) => {
+  const handleDeleteTask = async (taskId: number) => {
     try {
-      await axios.put(`/tasks/${id}`, { title: newTitle });
-      fetchTasks();
+      const token = localStorage.getItem("token");
+
+      if (!token) {
+        alert("You must be logged in to delete tasks.");
+        navigate("/login");
+        return;
+      }
+
+      await axios.delete(`/tasks/${taskId}`);
+
+      console.log("Deleted task:", taskId);
+      fetchTasks(); // refresh
     } catch (error) {
-      console.error("Error editing task:", error);
-      alert("Failed to edit task.");
+      console.error("Error deleting task:", error);
+      alert("Failed to delete task.");
     }
   };
-
-const handleDeleteTask = async (taskId: number) => {
-  try {
-    const username = localStorage.getItem("username");
-    const password = localStorage.getItem("password");
-
-    if (!username || !password) {
-      alert("You must be logged in to delete tasks.");
-      navigate("/login");
-      return;
-    }
-
-    await axios.delete(`/tasks/${taskId}`, {
-      auth: {
-        username,
-        password,
-      },
-    });
-
-    console.log("Deleted task:", taskId);
-    fetchTasks(); // refresh
-  } catch (error) {
-    console.error("Error deleting task:", error);
-    alert("Failed to delete task.");
-  }
-};
 
 
 
@@ -237,26 +219,90 @@ const handleDeleteTask = async (taskId: number) => {
         ) : tasks.length === 0 ? (
           <p className="text-center text-gray-500">No tasks found.</p>
         ) : (
-          <ul>
+          <ul className="space-y-2">
             {tasks.map((task) => (
               <li
                 key={task.id}
-                className="flex justify-between items-center bg-gray-100 p-3 rounded mb-2"
+                className="bg-gray-100 rounded-lg overflow-hidden transition-all"
               >
-                <input
-                  type="text"
-                  defaultValue={task.title}
-                  onBlur={(e) => handleEditTask(task.id, e.target.value.trim())}
-                  className="border rounded px-2 py-1 w-2/3 text-black"
-                />
-                <div className="space-x-2">
-                  <button
-                    onClick={() => handleDeleteTask(task.id)}
-                    className="bg-red-400 hover:bg-red-500 text-white px-3 py-1 rounded"
-                  >
-                    Delete
-                  </button>
+                <div
+                  className="flex justify-between items-center p-3 cursor-pointer hover:bg-gray-200"
+                  onClick={() => setExpandedTaskId(expandedTaskId === task.id ? null : task.id)}
+                >
+                  <div className="flex-1">
+                    <h3 className="font-semibold text-lg text-gray-800">{task.title}</h3>
+                    <div className="flex gap-3 mt-1 text-sm text-gray-600">
+                      {task.label && (
+                        <span className="bg-blue-100 px-2 py-0.5 rounded">{task.label}</span>
+                      )}
+                      {task.priority && (
+                        <span className={`px-2 py-0.5 rounded ${
+                          task.priority === 'High' ? 'bg-red-100 text-red-700' :
+                          task.priority === 'Medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}>
+                          {task.priority}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteTask(task.id);
+                      }}
+                      className="bg-red-400 hover:bg-red-500 text-white px-3 py-1 rounded transition-colors"
+                    >
+                      Delete
+                    </button>
+                    <svg
+                      className={`w-5 h-5 text-gray-600 transition-transform ${
+                        expandedTaskId === task.id ? 'rotate-180' : ''
+                      }`}
+                      fill="none"
+                      stroke="currentColor"
+                      viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </div>
                 </div>
+                
+                {expandedTaskId === task.id && (
+                  <div className="px-3 pb-3 bg-white border-t border-gray-200">
+                    <div className="mt-3 space-y-2 text-sm">
+                      {task.description && (
+                        <div>
+                          <span className="font-semibold text-gray-700">Description:</span>
+                          <p className="text-gray-600 mt-1">{task.description}</p>
+                        </div>
+                      )}
+                      {task.dueDate && (
+                        <div>
+                          <span className="font-semibold text-gray-700">Due Date:</span>
+                          <p className="text-gray-600">{new Date(task.dueDate).toLocaleString()}</p>
+                        </div>
+                      )}
+                      {task.reminderTime && (
+                        <div>
+                          <span className="font-semibold text-gray-700">Reminder:</span>
+                          <p className="text-gray-600">{new Date(task.reminderTime).toLocaleString()}</p>
+                        </div>
+                      )}
+                      {task.createdAt && (
+                        <div>
+                          <span className="font-semibold text-gray-700">Created:</span>
+                          <p className="text-gray-600">{new Date(task.createdAt).toLocaleString()}</p>
+                        </div>
+                      )}
+                      <div>
+                        <span className="font-semibold text-gray-700">Status:</span>
+                        <p className="text-gray-600">{task.completed ? '✅ Completed' : '⏳ Pending'}</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
               </li>
             ))}
           </ul>

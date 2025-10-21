@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "../api/axios";
 
@@ -11,11 +11,13 @@ const Login = () => {
     e.preventDefault();
 
     try {
-      await axios.post("/login", { username, password });
+      const response = await axios.post("/login", { username, password });
 
-      localStorage.setItem("username", username);
-      localStorage.setItem("password", password);
-      navigate("/dashboard");
+      if (response.data.token) {
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("username", username);
+        navigate("/dashboard");
+      }
     } catch (error) {
       console.error("Login error:", error);
       alert("Login failed. Please check your credentials.");

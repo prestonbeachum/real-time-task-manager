@@ -1,8 +1,8 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import axios from "../api/axios";
 import { useNavigate } from "react-router-dom";
 
-const SignUp: React.FC = () => {
+const SignUp = () => {
   const [username, setUsername] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -24,19 +24,22 @@ const SignUp: React.FC = () => {
         setMessage("Account created successfully! Redirecting to login...");
         setTimeout(() => navigate("/login"), 2000);
       }
-    } catch (error: any) {
-      if (error.response) {
-        if (error.response.status === 409) {
-          const serverMessage = error.response.data;
-          if (serverMessage.includes("Username")) {
-            setMessage("Username already exists.");
-          } else if (serverMessage.includes("Email")) {
-            setMessage("Email already exists.");
+    } catch (error: unknown) {
+      if (error && typeof error === 'object' && 'response' in error) {
+        const axiosError = error as { response?: { status?: number; data?: string } };
+        if (axiosError.response) {
+          if (axiosError.response.status === 409) {
+            const serverMessage = axiosError.response.data || "";
+            if (serverMessage.includes("Username")) {
+              setMessage("Username already exists.");
+            } else if (serverMessage.includes("Email")) {
+              setMessage("Email already exists.");
+            } else {
+              setMessage("Conflict: " + serverMessage);
+            }
           } else {
-            setMessage("Conflict: " + serverMessage);
+            setMessage("Registration failed: " + axiosError.response.data);
           }
-        } else {
-          setMessage("Registration failed: " + error.response.data);
         }
       } else {
         setMessage("Unable to connect to server. Is it running?");
