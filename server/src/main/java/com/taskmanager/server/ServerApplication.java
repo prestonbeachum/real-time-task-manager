@@ -19,7 +19,7 @@ public class ServerApplication {
 	@Bean
 	public CommandLineRunner debugBeans(ApplicationContext ctx) {
 		return args -> {
-			System.out.println("🔍 All loaded beans:");
+			System.out.println("All loaded beans:");
 			Arrays.stream(ctx.getBeanDefinitionNames())
 					.filter(name -> name.toLowerCase().contains("reminder"))
 					.forEach(System.out::println);
